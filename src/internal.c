@@ -24645,6 +24645,12 @@ int PickHashSigAlgo(WOLFSSL* ssl, const byte* hashSigAlgo, word32 hashSigAlgoSz)
     void AddPacketInfo(WOLFSSL* ssl, const char* name, int type,
             const byte* data, int sz, int written, void* heap)
     {
+        // data: input[-5]
+        // sz:   17461
+            WOLFSSL_MSG("[BUG] Start AddPacketInfo\n");
+            char str[200];
+            sprintf(str, "sz: %d, type:%d, written: %d", sz, type, written);
+            WOLFSSL_MSG(str);
     #ifdef WOLFSSL_CALLBACKS
         TimeoutInfo* info = &ssl->timeoutInfo;
 
@@ -24663,14 +24669,22 @@ int PickHashSigAlgo(WOLFSSL* ssl, const byte* hashSigAlgo, word32 hashSigAlgoSz)
             if (sz < MAX_VALUE_SZ)
                 XMEMCPY(info->packets[info->numberPackets].value, data, sz);
             else {
+
+
                 info->packets[info->numberPackets].bufferValue =
                                     (byte*)XMALLOC(sz, heap, DYNAMIC_TYPE_INFO);
                 if (!info->packets[info->numberPackets].bufferValue)
                     /* let next alloc catch, just don't fill, not fatal here  */
                     info->packets[info->numberPackets].valueSz = 0;
-                else
-                    XMEMCPY(info->packets[info->numberPackets].bufferValue,
-                           data, sz);
+                else {
+
+                WOLFSSL_MSG("[BUG] before xmemcpy\n");
+                sprintf(str, "info->numberPackets: %d, sz: %d", info->numberPackets, sz);
+                WOLFSSL_MSG(str);
+                sprintf(str, "data[0]: %c", data[-10]);
+                WOLFSSL_MSG(str);
+                XMEMCPY(info->packets[info->numberPackets].bufferValue,data, sz);
+                }
             }
             gettimeofday(&currTime, 0);
             info->packets[info->numberPackets].timestamp.tv_sec  =

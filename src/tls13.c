@@ -5365,6 +5365,7 @@ int DoTls13ClientHello(WOLFSSL* ssl, const byte* input, word32* inOutIdx,
 #ifdef WOLFSSL_DTLS13
     if (ssl->options.dtls &&
         args->pv.major == DTLS_MAJOR && args->pv.minor > DTLSv1_2_MINOR) {
+        WOLFSSL_MSG("Downgrade 1");
         wantDowngrade = 1;
         ssl->version.minor = args->pv.minor;
     }
@@ -5373,21 +5374,40 @@ int DoTls13ClientHello(WOLFSSL* ssl, const byte* input, word32* inOutIdx,
     if (!ssl->options.dtls) {
         /* Legacy protocol version cannot negotiate TLS 1.3 or higher. */
         if (args->pv.major > SSLv3_MAJOR || (args->pv.major == SSLv3_MAJOR &&
-                                             args->pv.minor >= TLSv1_3_MINOR)) {
+                                             args->pv.minor > TLSv1_3_MINOR)) {
+            char str[20];
+            WOLFSSL_MSG("SSLv3_MAJOR [ssl]: ");
+            sprintf(str, "%d", args->pv.major);
+            WOLFSSL_MSG(str);
+            WOLFSSL_MSG("TLSv1_3_MINOR [ssl]: ");
+            sprintf(str, "%d", args->pv.minor);
+            WOLFSSL_MSG(str);
             args->pv.major = SSLv3_MAJOR;
             args->pv.minor = TLSv1_2_MINOR;
+            WOLFSSL_MSG("SSLv3_MAJOR: ");
+            sprintf(str, "%d", SSLv3_MAJOR);
+            WOLFSSL_MSG(str);
+            WOLFSSL_MSG("TLSv1_3_MINOR: ");
+            sprintf(str, "%d", TLSv1_3_MINOR);
+            WOLFSSL_MSG(str);
+            WOLFSSL_MSG("Downgrade 2");
             wantDowngrade = 1;
             ssl->version.minor = args->pv.minor;
         }
         /* Legacy version must be [ SSLv3_MAJOR, TLSv1_2_MINOR ] for TLS v1.3 */
         else if (args->pv.major == SSLv3_MAJOR &&
                  args->pv.minor < TLSv1_2_MINOR) {
+            WOLFSSL_MSG("Downgrade 3");
             wantDowngrade = 1;
             ssl->version.minor = args->pv.minor;
         }
     }
 
     if (!wantDowngrade) {
+        WOLFSSL_MSG("No downgrade");
+        #ifdef WOLFSSL_CALLBACKS
+            WOLFSSL_MSG("WOLFSSL_CALLBACKS");
+        #endif
         ret = DoTls13SupportedVersions(ssl, input + args->begin,
             args->idx - args->begin, helloSz, &wantDowngrade);
         if (ret < 0)
@@ -5399,6 +5419,7 @@ int DoTls13ClientHello(WOLFSSL* ssl, const byte* input, word32* inOutIdx,
         if (!ssl->options.downgrade) {
             WOLFSSL_MSG("Client trying to connect with lesser version than "
                         "TLS v1.3");
+            WOLFSSL_MSG("Downgrade --> A");
 #if defined(WOLFSSL_EXTRA_ALERTS) ||  defined(OPENSSL_EXTRA)
             SendAlert(ssl, alert_fatal, handshake_failure);
 #endif
@@ -5421,6 +5442,7 @@ int DoTls13ClientHello(WOLFSSL* ssl, const byte* input, word32* inOutIdx,
         }
         goto exit_dch;
 #else
+        WOLFSSL_MSG("Downgrade --> B");
         WOLFSSL_MSG("Client trying to connect with lesser version than "
                     "TLS v1.3");
         ERROR_OUT(VERSION_ERROR, exit_dch);
@@ -9739,6 +9761,15 @@ int DoTls13HandShakeMsgType(WOLFSSL* ssl, byte* input, word32* inOutIdx,
     /* add name later, add on record and handshake header part back on */
     if (ssl->toInfoOn) {
         int add = RECORD_HEADER_SZ + HANDSHAKE_HEADER_SZ;
+               WOLFSSL_MSG("\n--------------------------------\n[BUG] compute offset");
+               char str[200];
+               // add:9   *inOutIdx - add: -5      size + add: 17461
+               //sprintf(str, "Full info: add: %d, *inOutIdx - add: %d, size + add: %d\nAccess: input[*inOutIdx - add: %c", add,  *inOutIdx - add, size + add, input[*inOutIdx - add]);
+               //WOLFSSL_MSG(str);
+
+              sprintf(str, "Call AddPacketInfo: add: %d, *inOutIdx - add: %d, size + add: %d", add,  *inOutIdx - add, size + add);
+               WOLFSSL_MSG(str);
+
         AddPacketInfo(ssl, 0, handshake, input + *inOutIdx - add,
                       size + add, READ_PROTO, ssl->heap);
         AddLateRecordHeader(&ssl->curRL, &ssl->timeoutInfo);
