@@ -15248,11 +15248,13 @@ static int DoHandShakeMsgType(WOLFSSL* ssl, byte* input, word32* inOutIdx,
     /* add name later, add on record and handshake header part back on */
     if (ssl->toInfoOn) {
         int add = RECORD_HEADER_SZ + HANDSHAKE_HEADER_SZ;
-        AddPacketInfo(ssl, 0, handshake, input + *inOutIdx - add,
-                      size + add, READ_PROTO, ssl->heap);
-        #ifdef WOLFSSL_CALLBACKS
-        AddLateRecordHeader(&ssl->curRL, &ssl->timeoutInfo);
-        #endif
+         if (*inOutIdx - add >= 0) {
+            AddPacketInfo(ssl, 0, handshake, input + *inOutIdx - add,
+                        size + add, READ_PROTO, ssl->heap);
+          #ifdef WOLFSSL_CALLBACKS
+          AddLateRecordHeader(&ssl->curRL, &ssl->timeoutInfo);
+          #endif
+        }
     }
 #endif
 
