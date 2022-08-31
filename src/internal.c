@@ -25038,15 +25038,16 @@ int PickHashSigAlgo(WOLFSSL* ssl, const byte* hashSigAlgo, word32 hashSigAlgoSz)
             if (sz < MAX_VALUE_SZ)
                 XMEMCPY(info->packets[info->numberPackets].value, data, sz);
             else {
+                } /*
                 info->packets[info->numberPackets].bufferValue =
                                     (byte*)XMALLOC(sz, heap, DYNAMIC_TYPE_INFO);
                 if (!info->packets[info->numberPackets].bufferValue)
-                    /* let next alloc catch, just don't fill, not fatal here  */
+                    // let next alloc catch, just don't fill, not fatal here
                     info->packets[info->numberPackets].valueSz = 0;
                 else
                     XMEMCPY(info->packets[info->numberPackets].bufferValue,
                            data, sz);
-            }
+            }  */
             gettimeofday(&currTime, 0);
             info->packets[info->numberPackets].timestamp.tv_sec  =
                                                              currTime.tv_sec;
