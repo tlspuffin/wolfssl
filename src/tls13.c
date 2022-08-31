@@ -89,7 +89,6 @@
 
 #include <wolfssl/wolfcrypt/settings.h>
 
-#define WOLFSSL_TLS13
 #ifdef WOLFSSL_TLS13
 #ifdef HAVE_SESSION_TICKET
     #include <wolfssl/wolfcrypt/wc_port.h>
