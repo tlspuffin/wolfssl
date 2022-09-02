@@ -4472,7 +4472,7 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
 
     for (i = 0; i < ssl->suites->suiteSz; i += 2) {
         for (j = 0; j < peerSuites->suiteSz; j += 2) {
-            if (suiteSz < WOLFSSL_MAX_SUITE_SZ &&
+            if (suiteSz < WOLFSSL_MAX_SUITE_SZ - 1 &&
                 ssl->suites->suites[i+0] == peerSuites->suites[j+0] &&
                 ssl->suites->suites[i+1] == peerSuites->suites[j+1]) {
                 suites[suiteSz++] = peerSuites->suites[j+0];
