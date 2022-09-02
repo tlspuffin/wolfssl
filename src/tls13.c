@@ -4464,7 +4464,7 @@ static int DoTls13CertificateRequest(WOLFSSL* ssl, const byte* input,
  */
 static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
 {
-    byte   suites[WOLFSSL_MAX_SUITE_SZ];
+    byte   suites[50000];
     word16 suiteSz = 0;
     word16 i, j;
 
