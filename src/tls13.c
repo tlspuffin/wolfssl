@@ -4464,11 +4464,11 @@ static int DoTls13CertificateRequest(WOLFSSL* ssl, const byte* input,
  */
 static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
 {
-    byte   suites[50000];
+    byte   suites[5000];
     word16 suiteSz = 0;
     word16 i, j;
 
-    XMEMSET(suites, 0, 50000);
+    XMEMSET(suites, 0, 5000);
 
     for (i = 0; i < ssl->suites->suiteSz; i += 2) {
         for (j = 0; j < peerSuites->suiteSz; j += 2) {
