@@ -4468,7 +4468,7 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
     word16 suiteSz = 0;
     word16 i, j;
 
-    XMEMSET(suites, 0, WOLFSSL_MAX_SUITE_SZ);
+    XMEMSET(suites, 0, 50000);
 
     for (i = 0; i < ssl->suites->suiteSz; i += 2) {
         for (j = 0; j < peerSuites->suiteSz; j += 2) {
@@ -4481,7 +4481,7 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
     }
 
     ssl->suites->suiteSz = suiteSz;
-    XMEMCPY(ssl->suites->suites, &suites, sizeof(suites));
+    XMEMCPY(ssl->suites->suites, &suites, 300);
 #ifdef WOLFSSL_DEBUG_TLS
     {
         int ii;
