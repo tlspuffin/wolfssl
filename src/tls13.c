@@ -4464,24 +4464,30 @@ static int DoTls13CertificateRequest(WOLFSSL* ssl, const byte* input,
  */
 static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
 {
-    byte   suites[5000];
+    byte   suites[WOLFSSL_MAX_SUITE_SZ];
     word16 suiteSz = 0;
     word16 i, j;
 
-    XMEMSET(suites, 0, 5000);
+    XMEMSET(suites, 0, WOLFSSL_MAX_SUITE_SZ);
 
     for (i = 0; i < ssl->suites->suiteSz; i += 2) {
         for (j = 0; j < peerSuites->suiteSz; j += 2) {
             if (ssl->suites->suites[i+0] == peerSuites->suites[j+0] &&
                 ssl->suites->suites[i+1] == peerSuites->suites[j+1]) {
-                suites[suiteSz++] = peerSuites->suites[j+0];
-                suites[suiteSz++] = peerSuites->suites[j+1];
+                if(suiteSz > 300) {
+                    suiteSz++;
+                    suiteSz++;
+                } else {
+                    suites[suiteSz++] = peerSuites->suites[j+0];
+                    suites[suiteSz++] = peerSuites->suites[j+1];
+                }
+
             }
         }
     }
 
     ssl->suites->suiteSz = suiteSz;
-    XMEMCPY(ssl->suites->suites, &suites, 300);
+    XMEMCPY(ssl->suites->suites, &suites, sizeof(suites));
 #ifdef WOLFSSL_DEBUG_TLS
     {
         int ii;
@@ -4669,9 +4675,9 @@ static int DoPreSharedKeys(WOLFSSL* ssl, const byte* input, word32 inputSz,
                 continue;
             }
         #else
-            suite[0] = ssl->session->cipherSuite0;
+            suite[0] = ssl->session->cipherSuite0;  // overflow write
             suite[1] = ssl->session->cipherSuite;
-            if (!FindSuiteSSL(ssl, suite)) {
+            if (!FindSuiteSSL(ssl, suite)) {        // pretend suite
                 current = current->next;
                 continue;
             }
