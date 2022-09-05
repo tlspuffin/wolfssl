@@ -4464,15 +4464,16 @@ static int DoTls13CertificateRequest(WOLFSSL* ssl, const byte* input,
  */
 static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
 {
-    byte   suites[WOLFSSL_MAX_SUITE_SZ];
+    byte   suites[50000];
     word16 suiteSz = 0;
     word16 i, j;
 
-    XMEMSET(suites, 0, WOLFSSL_MAX_SUITE_SZ);
+    XMEMSET(suites, 0, 50000);
 
     for (i = 0; i < ssl->suites->suiteSz; i += 2) {
         for (j = 0; j < peerSuites->suiteSz; j += 2) {
-            if (ssl->suites->suites[i+0] == peerSuites->suites[j+0] &&
+            if (suiteSz < WOLFSSL_MAX_SUITE_SZ - 1 &&
+                ssl->suites->suites[i+0] == peerSuites->suites[j+0] &&
                 ssl->suites->suites[i+1] == peerSuites->suites[j+1]) {
                 if(suiteSz > 300) {
                     suiteSz++;
@@ -4487,7 +4488,7 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
     }
 
     ssl->suites->suiteSz = suiteSz;
-    XMEMCPY(ssl->suites->suites, &suites, sizeof(suites));
+    XMEMCPY(ssl->suites->suites, &suites, 300);
 #ifdef WOLFSSL_DEBUG_TLS
     {
         int ii;
@@ -9774,9 +9775,11 @@ int DoTls13HandShakeMsgType(WOLFSSL* ssl, byte* input, word32* inOutIdx,
     /* add name later, add on record and handshake header part back on */
     if (ssl->toInfoOn) {
         int add = RECORD_HEADER_SZ + HANDSHAKE_HEADER_SZ;
-        AddPacketInfo(ssl, 0, handshake, input + *inOutIdx - add,
-                      size + add, READ_PROTO, ssl->heap);
-        AddLateRecordHeader(&ssl->curRL, &ssl->timeoutInfo);
+        if (*inOutIdx - add >= 0) {
+            AddPacketInfo(ssl, 0, handshake, input + *inOutIdx - add,
+                       size + add, READ_PROTO, ssl->heap);
+            AddLateRecordHeader(&ssl->curRL, &ssl->timeoutInfo);
+        }
     }
 #endif
 
@@ -10360,8 +10363,6 @@ int wolfSSL_connect_TLSv13(WOLFSSL* ssl)
             FALL_THROUGH;
 
         case HELLO_AGAIN:
-            if (ssl->options.certOnly)
-                return WOLFSSL_SUCCESS;
 
             if (ssl->options.serverState ==
                                           SERVER_HELLO_RETRY_REQUEST_COMPLETE) {
@@ -10409,6 +10410,8 @@ int wolfSSL_connect_TLSv13(WOLFSSL* ssl)
             FALL_THROUGH;
 
         case FIRST_REPLY_DONE:
+            if (ssl->options.certOnly)
+                return WOLFSSL_SUCCESS;
         #ifdef WOLFSSL_EARLY_DATA
             if (!ssl->options.dtls && ssl->earlyData != no_early_data
                 && !WOLFSSL_IS_QUIC(ssl)) {
@@ -10665,7 +10668,7 @@ int wolfSSL_UseKeyShare(WOLFSSL* ssl, word16 group)
     if (WOLFSSL_NAMED_GROUP_IS_PQC(group)) {
 
         if (ssl->ctx != NULL && ssl->ctx->method != NULL &&
-            ssl->ctx->method->version.minor != TLSv1_3_MINOR) {
+            !IsAtLeastTLSv1_3(ssl->version)) {
             return BAD_FUNC_ARG;
         }
 
