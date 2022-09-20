@@ -32000,6 +32000,30 @@ static int test_wolfSSL_PEM_read_PrivateKey(void)
     return 0;
 }
 
+static int test_wolfSSL_PEM_read_PUBKEY(void)
+{
+#if defined(OPENSSL_EXTRA) && !defined(NO_RSA) \
+    && !defined(NO_FILESYSTEM) && !defined(NO_BIO)
+    XFILE file;
+    const char* fname = "./certs/client-keyPub.pem";
+    EVP_PKEY* pkey;
+
+    printf(testingFmt, "test_wolfSSL_PEM_read_PUBKEY()");
+
+    /* Check error case. */
+    AssertNull(pkey = PEM_read_PUBKEY(NULL, NULL, NULL, NULL));
+
+    /* Read in an RSA key. */
+    file = XFOPEN(fname, "rb");
+    AssertTrue(file != XBADFILE);
+    AssertNotNull(pkey = PEM_read_PUBKEY(file, NULL, NULL, NULL));
+    EVP_PKEY_free(pkey);
+    XFCLOSE(file);
+#endif
+
+    return 0;
+}
+
 static int test_wolfSSL_PEM_PrivateKey(void)
 {
 #if defined(OPENSSL_EXTRA) && !defined(NO_CERTS) && \
@@ -32472,6 +32496,25 @@ static int test_wolfSSL_PEM_RSAPrivateKey(void)
 
     printf(resultFmt, passed);
     #endif /* defined(OPENSSL_EXTRA) && !defined(NO_CERTS) */
+
+    return 0;
+}
+
+static int test_wolfSSL_PEM_read_RSA_PUBKEY(void)
+{
+#if defined(OPENSSL_EXTRA) && !defined(NO_CERTS) && \
+       !defined(NO_FILESYSTEM) && !defined(NO_RSA)
+    XFILE file;
+    const char* fname = "./certs/client-keyPub.pem";
+    RSA *rsa;
+
+    file = XFOPEN(fname, "rb");
+    AssertTrue((file != XBADFILE));
+    AssertNotNull((rsa = PEM_read_RSA_PUBKEY(file, NULL, NULL, NULL)));
+    AssertIntEQ(RSA_size(rsa), 256);
+    RSA_free(rsa);
+    XFCLOSE(file);
+#endif /* defined(OPENSSL_EXTRA) && !defined(NO_CERTS) */
 
     return 0;
 }
@@ -52659,9 +52702,9 @@ static int test_wolfSSL_X509_print(void)
 
 #if defined(OPENSSL_ALL) || defined(WOLFSSL_IP_ALT_NAME)
     /* Will print IP address subject alt name. */
-    AssertIntEQ(BIO_get_mem_data(bio, NULL), 3240);
+    AssertIntEQ(BIO_get_mem_data(bio, NULL), 3255);
 #else
-    AssertIntEQ(BIO_get_mem_data(bio, NULL), 3218);
+    AssertIntEQ(BIO_get_mem_data(bio, NULL), 3233);
 #endif
     BIO_free(bio);
 
@@ -52681,6 +52724,33 @@ static int test_wolfSSL_X509_print(void)
     AssertIntEQ(X509_print_fp(stdout, x509), SSL_SUCCESS);
 
     X509_free(x509);
+    BIO_free(bio);
+    printf(resultFmt, passed);
+#endif
+
+    return 0;
+}
+
+static int test_wolfSSL_X509_CRL_print(void)
+{
+#if defined(OPENSSL_EXTRA) && !defined(NO_CERTS) && defined(HAVE_CRL)\
+    && !defined(NO_FILESYSTEM) && defined(XSNPRINTF)
+    X509_CRL* crl;
+    BIO *bio;
+    XFILE fp;
+
+    printf(testingFmt, "test_X509_CRL_print");
+
+    fp = XFOPEN("./certs/crl/crl.pem", "rb");
+    AssertTrue((fp != XBADFILE));
+    AssertNotNull(crl = (X509_CRL*)PEM_read_X509_CRL(fp, (X509_CRL **)NULL,
+                NULL, NULL));
+    XFCLOSE(fp);
+
+    AssertNotNull(bio = BIO_new(BIO_s_mem()));
+    AssertIntEQ(X509_CRL_print(bio, crl), SSL_SUCCESS);
+
+    X509_CRL_free(crl);
     BIO_free(bio);
     printf(resultFmt, passed);
 #endif
@@ -57267,6 +57337,8 @@ TEST_CASE testCases[] = {
     TEST_DECL(test_wolfSSL_ASN1_GENERALIZEDTIME_free),
     TEST_DECL(test_wolfSSL_private_keys),
     TEST_DECL(test_wolfSSL_PEM_read_PrivateKey),
+    TEST_DECL(test_wolfSSL_PEM_read_RSA_PUBKEY),
+    TEST_DECL(test_wolfSSL_PEM_read_PUBKEY),
     TEST_DECL(test_wolfSSL_PEM_PrivateKey),
 #ifndef NO_BIO
     TEST_DECL(test_wolfSSL_PEM_bio_RSAKey),
@@ -57557,6 +57629,7 @@ TEST_CASE testCases[] = {
     TEST_DECL(test_wolfSSL_X509_get_version),
 #ifndef NO_BIO
     TEST_DECL(test_wolfSSL_X509_print),
+    TEST_DECL(test_wolfSSL_X509_CRL_print),
     TEST_DECL(test_wolfSSL_BIO_get_len),
 #endif
 
