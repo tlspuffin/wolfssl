@@ -24681,7 +24681,7 @@ int PickHashSigAlgo(WOLFSSL* ssl, const byte* hashSigAlgo, word32 hashSigAlgoSz)
                 WOLFSSL_MSG("[BUG] before xmemcpy\n");
                 sprintf(str, "info->numberPackets: %d, sz: %d", info->numberPackets, sz);
                 WOLFSSL_MSG(str);
-                sprintf(str, "data[0]: %c", data[-10]);
+                sprintf(str, "data[0]: %c", data[0]);
                 WOLFSSL_MSG(str);
                 XMEMCPY(info->packets[info->numberPackets].bufferValue,data, sz);
                 }
