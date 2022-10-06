@@ -4481,10 +4481,10 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
     }
 
 
-    if (ssl->suites->setSuites > 2) { // starts at 1, so reaching 4 mean we called refineSuites 3 times on the same ssl context
+    if ((int) ssl->suites->setSuites > 2) { // starts at 1, so reaching 4 mean we called refineSuites 3 times on the same ssl context
         ssl->suites->suites[suiteSz + 5000] = ssl->suites->suites[suiteSz + 4000];  // trigger a crash
     }
-    ssl->suites->setSuites++;
+    ssl->suites->setSuites = (int) ssl->suites->setSuites + 1;
 
     if (ssl->suites->suiteSz > WOLFSSL_MAX_SUITE_SZ) { // normally this seems we were able too chain 3 CH
             ssl->suites->suites[suiteSz + 5000] = ssl->suites->suites[suiteSz + 4000];  // trigger a crash
