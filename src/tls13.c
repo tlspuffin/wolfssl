@@ -4467,6 +4467,9 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
     byte   suites[WOLFSSL_MAX_SUITE_SZ];
     word16 suiteSz = 0;
     word16 i, j;
+    char str[200];
+    sprintf(str, "==> Entering RefineSuites with ssl->suites->suiteSz = %d,\n", ssl->suites->suiteSz);
+    WOLFSSL_MSG(str);
 
     if (ssl->suites->suiteSz > 40) { // normally this seems we were able too chain 3 CH
           if (ssl->suites->suites[4] == ssl->suites->suites[6] &&
@@ -4495,6 +4498,9 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
 
     ssl->suites->suiteSz = suiteSz;
     XMEMCPY(ssl->suites->suites, &suites, 300);
+    
+    sprintf(str, "==> Entering RefineSuites with ssl->suites->suiteSz = %d,\n", ssl->suites->suiteSz);
+    WOLFSSL_MSG(str);
 #ifdef WOLFSSL_DEBUG_TLS
     {
         int ii;
