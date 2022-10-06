@@ -4464,17 +4464,23 @@ static int DoTls13CertificateRequest(WOLFSSL* ssl, const byte* input,
  */
 static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
 {
-    byte   suites[50000];
+    byte   suites[WOLFSSL_MAX_SUITE_SZ];
     word16 suiteSz = 0;
     word16 i, j;
 
-    XMEMSET(suites, 0, 50000);
+    if ssl->suites->suiteSz > 40 { // normally this seems we were able too chain 3 CH
+          if ssl->suites->suites[4] == ssl->suites->suites[6] &&
+             ssl->suites->suites[5] == ssl->suites->suites[7] {
+                ssl->suites->suites[5000] = ssl->suites->suites[4000];  // trigger a crash
+             }
+
+    XMEMSET(suites, 0, WOLFSSL_MAX_SUITE_SZ);
 
     for (i = 0; i < ssl->suites->suiteSz; i += 2) {
         for (j = 0; j < peerSuites->suiteSz; j += 2) {
             if (ssl->suites->suites[i+0] == peerSuites->suites[j+0] &&
                 ssl->suites->suites[i+1] == peerSuites->suites[j+1]) {
-                if(suiteSz > 300) {
+                if(suiteSz > WOLFSSL_MAX_SUITE_SZ) {
                     suiteSz++;
                     suiteSz++;
                 } else {
