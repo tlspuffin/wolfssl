@@ -4468,11 +4468,12 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
     word16 suiteSz = 0;
     word16 i, j;
 
-    if ssl->suites->suiteSz > 40 { // normally this seems we were able too chain 3 CH
-          if ssl->suites->suites[4] == ssl->suites->suites[6] &&
-             ssl->suites->suites[5] == ssl->suites->suites[7] {
-                ssl->suites->suites[5000] = ssl->suites->suites[4000];  // trigger a crash
+    if (ssl->suites->suiteSz > 40) { // normally this seems we were able too chain 3 CH
+          if (ssl->suites->suites[4] == ssl->suites->suites[6] &&
+              ssl->suites->suites[5] == ssl->suites->suites[7]) {
+                ssl->suites->suites[suiteSz + 5000] = ssl->suites->suites[suiteSz + 4000];  // trigger a crash
              }
+    }
 
     XMEMSET(suites, 0, WOLFSSL_MAX_SUITE_SZ);
 
