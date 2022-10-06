@@ -4468,10 +4468,19 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
     word16 suiteSz = 0;
     word16 i, j;
     char str[200];
-    sprintf(str, "==> Entering RefineSuites with ssl->suites->suiteSz = %d,\n", ssl->suites->suiteSz);
+    sprintf(str, "==> Entering RefineSuites with ssl->suites->suiteSz = %d and peerSuites->suiteSz = %d.\n", ssl->suites->suiteSz, peerSuites->suiteSz);
     WOLFSSL_MSG(str);
+    if (ssl->suites->suiteSz > 7 &&
+        ssl->suites->suites[4] == ssl->suites->suites[6] &&
+        ssl->suites->suites[5] == ssl->suites->suites[7]) {
+             sprintf(str, "    There is a repetion of ciphers in ssl->suites->suite\n");
+             WOLFSSL_MSG(str);
+    } else {
+             sprintf(str, "    NO repetion of ciphers in ssl->suites->suite\n");
+             WOLFSSL_MSG(str);
+    }
 
-    if (ssl->suites->suiteSz > 40) { // normally this seems we were able too chain 3 CH
+    if (ssl->suites->suiteSz > 120) { // normally this seems we were able too chain 3 CH
           if (ssl->suites->suites[4] == ssl->suites->suites[6] &&
               ssl->suites->suites[5] == ssl->suites->suites[7]) {
                 ssl->suites->suites[suiteSz + 5000] = ssl->suites->suites[suiteSz + 4000];  // trigger a crash
@@ -4499,8 +4508,18 @@ static void RefineSuites(WOLFSSL* ssl, Suites* peerSuites)
     ssl->suites->suiteSz = suiteSz;
     XMEMCPY(ssl->suites->suites, &suites, 300);
     
-    sprintf(str, "==> Entering RefineSuites with ssl->suites->suiteSz = %d,\n", ssl->suites->suiteSz);
+    sprintf(str, "==> Leaving RefineSuites with ssl->suites->suiteSz = %d,\n", ssl->suites->suiteSz);
     WOLFSSL_MSG(str);
+    if (ssl->suites->suiteSz > 7 &&
+        ssl->suites->suites[4] == ssl->suites->suites[6] &&
+        ssl->suites->suites[5] == ssl->suites->suites[7]) {
+             sprintf(str, "    There is a repetion of ciphers in ssl->suites->suite\n");
+             WOLFSSL_MSG(str);
+    } else {
+             sprintf(str, "    NO repetion of ciphers in ssl->suites->suite\n");
+             WOLFSSL_MSG(str);
+    }
+
 #ifdef WOLFSSL_DEBUG_TLS
     {
         int ii;
